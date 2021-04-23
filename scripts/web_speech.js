@@ -17,12 +17,20 @@ var voices = [];
  * voices for the synthesizer
  */
 function populateVoiceList(){
-    voices = synth.getVoices();
+    voices = synth.getVoices().sort(function (a,b){
+        //Sort the voices
+        const aname = a.name.toLocaleUpperCase(), bname = b.name.toUpperCase();
+        if(aname < bname) return -1;
+        else if(aname == bname) return 0;
+        else return +1;
+    });
+    var selectedIndex = voiceSelect.selectedIndex < 0 ? 0 : voiceSelect.selectedIndex;
+    voiceSelect.innerHTML = '';
     for(var i = 0; i < voices.length; i++){
         var option = document.createElement('option');
         option.textContent = voices[i].name + ' (' + voices[i].lang + ') ';
         
-        if(voice[i].default){
+        if(voices[i].default){
             option.text += ' -- DEFAULT';
         }//End if
 
@@ -30,4 +38,60 @@ function populateVoiceList(){
         option.setAttribute('data-name', voices[i].name);
         voiceSelect.appendChild(option);
     }//End for
+    voiceSelect.selectedIndex = selectedIndex;
+}//End function
+
+populateVoiceList();
+if(speechSynthesis.onvoiceschanged !== undefined){
+    speechSynthesis.onvoiceschanged = populateVoiceList;
+}
+
+/**
+ * Event handle to speak the entered text
+ *  Uses onsubmit for when enter/return is pressed
+ */
+function speak(){
+    if(synth.speaking){
+        console.error('speechSynthesis.speaking');
+        return;
+    }if(inputText.value !== ''){
+        var utterThis = new SpeechSynthesisUtterance(inputText.value);
+        utterThis.onend = function(event){
+            console.log('SpeechSynthesisUtterance.onend');
+        }
+        utterThis.onerror = function(event){
+            console.log('SpeechSynthesisUtterance.onerror');
+        }
+    var selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+    //Search voice array for selected language from the select option
+        for(i = 0; i < voices.length; i++){
+            if(voices[i].name === selectedOption){
+                utterThis.voice = voices[i];
+            }
+        }//End for
+    utterThis.pitch = pitch.value;
+    utterThis.rate = rate.value;
+    synth.speak(utterThis);
+    }//end if
+}//End function
+
+/**
+ * Trigger speak function onsubmit
+ * @param {*} event 
+ */
+inputForm.onsubmit = function(event){
+    event.preventDefault();
+    speak();
+}//End function
+
+pitch.onchange = function(){
+    pitchValue.textContent = pitch.value;
+}
+
+rate.onchange = function(){
+    rateValue.textContent = rate.value;
+}
+
+voiceSelect.onchange = function(){
+    speak();
 }
