@@ -86,12 +86,12 @@ inputForm.onsubmit = function(event){
 
 pitch.onchange = function(){
     pitchValue.textContent = pitch.value;
-}
+}//End function
 
 rate.onchange = function(){
     rateValue.textContent = rate.value;
-}
+}//End function
 
 voiceSelect.onchange = function(){
     speak();
-}
+}//End function
